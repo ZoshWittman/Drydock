@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drydock Architecture Map</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #fff; }
+    .subtitle { color: #888; margin-bottom: 2rem; font-size: 1.125rem; }
+    
+    .architecture-map {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .component {
+      background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .component::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .component:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+      border-color: #3b82f6;
+    }
+    
+    .component:hover::before {
+      opacity: 1;
+    }
+    
+    .component-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    
+    .component-icon {
+      font-size: 2rem;
+      filter: grayscale(30%);
+    }
+    
+    .component-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .component-path {
+      font-size: 0.875rem;
+      color: #666;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 0.75rem;
+    }
+    
+    .component-desc {
+      font-size: 0.9375rem;
+      color: #aaa;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    
+    .component-features {
+      list-style: none;
+      font-size: 0.875rem;
+      color: #888;
+    }
+    
+    .component-features li {
+      padding: 0.25rem 0;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+    
+    .component-features li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #3b82f6;
+    }
+    
+    .section-title {
+      font-size: 1.75rem;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      color: #fff;
+      border-bottom: 2px solid #333;
+      padding-bottom: 0.5rem;
+    }
+    
+    .flow-diagram {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: #0f0;
+      overflow-x: auto;
+      line-height: 1.8;
+    }
+    
+    .legend {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background: #1a1a1a;
+      border-radius: 12px;
+      border: 1px solid #333;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+    
+    .color-input { background: #3b82f6; }
+    .color-process { background: #8b5cf6; }
+    .color-output { background: #10b981; }
+    .color-storage { background: #f59e0b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚢 Drydock Architecture Map</h1>
+    <p class="subtitle">Interactive component visualization</p>
+    
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color color-input"></div>
+        <span>Input Components</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color color-process"></div>
+        <span>Processing Modules</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color color-output"></div>
+        <span>Output/UI Components</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color color-storage"></div>
+        <span>Storage Layer</span>
+      </div>
+    </div>
+    
+    <div class="flow-diagram">
+┌─────────────┐
+│  PR Input   │  (User provides repo path or GitHub URL)
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────┐
+│  Ship Packet        │  Orchestrates all modules
+│  Processor          │  Determines verdict
+└──────┬──────────────┘
+       │
+       ├──────────────────┐
+       │                  │
+       ▼                  ▼
+┌──────────────┐    ┌──────────────┐
+│   Rebuild    │    │ Test Replay  │
+│   Module     │    │   Module     │
+└──────┬───────┘    └──────┬───────┘
+       │                   │
+       └────────┬──────────┘
+                │
+       ┌────────┴──────────┐
+       │                   │
+       ▼                   ▼
+┌──────────────┐    ┌──────────────┐
+│ Blast Radius │    │  Contracts   │
+│   Module     │    │   Module     │
+└──────┬───────┘    └──────┬───────┘
+       │                   │
+       └────────┬──────────┘
+                │
+       ┌────────┴──────────┐
+       │                   │
+       ▼                   ▼
+┌──────────────┐    ┌──────────────┐
+│  Parallax    │    │   Witness    │
+│   Module     │    │   Module     │
+└──────┬───────┘    └──────┬───────┘
+       │                   │
+       └────────┬──────────┘
+                │
+                ▼
+       ┌─────────────────┐
+       │  Ship Packet    │  Complete with verdict
+       │  (assembled)    │
+       └────────┬────────┘
+                │
+       ┌────────┴──────────┐
+       │                   │
+       ▼                   ▼
+┌──────────────┐    ┌──────────────┐
+│   SQLite     │    │   Next.js    │
+│  Database    │    │     UI       │
+└──────────────┘    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │ HTML Export  │
+                    └──────────────┘
+    </div>
+    
+    <h2 class="section-title">Core Processing Modules</h2>
+    
+    <div class="architecture-map">
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">🎯</div>
+          <div class="component-title">Ship Packet Processor</div>
+        </div>
+        <div class="component-path">src/modules/processor.ts</div>
+        <div class="component-desc">
+          Central orchestrator that coordinates all validation modules and determines the final verdict.
+        </div>
+        <ul class="component-features">
+          <li>Generates unique packet IDs</li>
+          <li>Executes modules sequentially</li>
+          <li>Applies fail-closed logic</li>
+          <li>Assembles complete ship packet</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">🔗</div>
+          <div class="component-title">Witness Module</div>
+        </div>
+        <div class="component-path">src/modules/witness.ts</div>
+        <div class="component-desc">
+          Creates cryptographically-verified receipt chain of all operations performed.
+        </div>
+        <ul class="component-features">
+          <li>Records tool invocations</li>
+          <li>Computes SHA-256 hashes</li>
+          <li>Validates chain integrity</li>
+          <li>Tamper-evident audit trail</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">👁️</div>
+          <div class="component-title">Parallax Module</div>
+        </div>
+        <div class="component-path">src/modules/parallax.ts</div>
+        <div class="component-desc">
+          Detects conflicts between PR claims and actual evidence in the diff.
+        </div>
+        <ul class="component-features">
+          <li>Compares claims vs evidence</li>
+          <li>Detects fix without tests</li>
+          <li>Flags refactor conflicts</li>
+          <li>Identifies breaking changes</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">💥</div>
+          <div class="component-title">Blast Radius Module</div>
+        </div>
+        <div class="component-path">src/modules/blast-radius.ts</div>
+        <div class="component-desc">
+          Maps the impact surface: files, packages, routes, and critical areas affected.
+        </div>
+        <ul class="component-features">
+          <li>Analyzes file changes</li>
+          <li>Identifies affected packages</li>
+          <li>Extracts modified routes</li>
+          <li>Calculates impact score</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">📋</div>
+          <div class="component-title">Contracts Module</div>
+        </div>
+        <div class="component-path">src/modules/contracts.ts</div>
+        <div class="component-desc">
+          Enforces project-defined requirements via drydock.yaml contract file.
+        </div>
+        <ul class="component-features">
+          <li>Checks required tests</li>
+          <li>Validates forbidden paths</li>
+          <li>Verifies required docs</li>
+          <li>Fail-closed enforcement</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">🏗️</div>
+          <div class="component-title">Rebuild Module</div>
+        </div>
+        <div class="component-path">src/modules/rebuild.ts</div>
+        <div class="component-desc">
+          Executes isolated rebuild to verify code compiles successfully.
+        </div>
+        <ul class="component-features">
+          <li>Runs npm run build</li>
+          <li>Captures stdout/stderr</li>
+          <li>Records exit code</li>
+          <li>Measures duration</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">🧪</div>
+          <div class="component-title">Test Replay Module</div>
+        </div>
+        <div class="component-path">src/modules/test-replay.ts</div>
+        <div class="component-desc">
+          Re-runs tests in isolation to detect failures and non-determinism.
+        </div>
+        <ul class="component-features">
+          <li>Executes npm test</li>
+          <li>Parses test results</li>
+          <li>Detects divergence</li>
+          <li>Fail-closed on failure</li>
+        </ul>
+      </div>
+    </div>
+    
+    <h2 class="section-title">Data & Storage Layer</h2>
+    
+    <div class="architecture-map">
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">💾</div>
+          <div class="component-title">Database Schema</div>
+        </div>
+        <div class="component-path">src/db/schema.ts</div>
+        <div class="component-desc">
+          SQLite schema initialization and database connection management.
+        </div>
+        <ul class="component-features">
+          <li>Single ship_packets table</li>
+          <li>JSON serialization</li>
+          <li>Indexed queries</li>
+          <li>Local-first storage</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">🗄️</div>
+          <div class="component-title">Repository Pattern</div>
+        </div>
+        <div class="component-path">src/db/repository.ts</div>
+        <div class="component-desc">
+          CRUD operations for ship packets with type-safe interfaces.
+        </div>
+        <ul class="component-features">
+          <li>Save ship packets</li>
+          <li>Retrieve by ID</li>
+          <li>List with pagination</li>
+          <li>Type-safe queries</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">📊</div>
+          <div class="component-title">Type Definitions</div>
+        </div>
+        <div class="component-path">src/types/index.ts</div>
+        <div class="component-desc">
+          Complete TypeScript type definitions for all data structures.
+        </div>
+        <ul class="component-features">
+          <li>ShipPacket interface</li>
+          <li>Module result types</li>
+          <li>Verdict enum</li>
+          <li>Contract definitions</li>
+        </ul>
+      </div>
+    </div>
+    
+    <h2 class="section-title">User Interface</h2>
+    
+    <div class="architecture-map">
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">🏠</div>
+          <div class="component-title">Home Page (Inbox)</div>
+        </div>
+        <div class="component-path">src/app/page.tsx</div>
+        <div class="component-desc">
+          Lists all ship packets with summary view and verdict badges.
+        </div>
+        <ul class="component-features">
+          <li>Card-based layout</li>
+          <li>Color-coded verdicts</li>
+          <li>Quick summaries</li>
+          <li>Click-through details</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">📄</div>
+          <div class="component-title">Packet Detail Page</div>
+        </div>
+        <div class="component-path">src/app/packet/[id]/page.tsx</div>
+        <div class="component-desc">
+          Comprehensive view of single ship packet with all module results.
+        </div>
+        <ul class="component-features">
+          <li>Complete packet details</li>
+          <li>Module breakdowns</li>
+          <li>Verdict explanation</li>
+          <li>Export capability</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">💾</div>
+          <div class="component-title">Export API</div>
+        </div>
+        <div class="component-path">src/app/api/export/[id]/route.ts</div>
+        <div class="component-desc">
+          Generates portable HTML+JSON artifact for offline sharing.
+        </div>
+        <ul class="component-features">
+          <li>Self-contained HTML</li>
+          <li>Inline CSS</li>
+          <li>Raw JSON included</li>
+          <li>Downloadable artifact</li>
+        </ul>
+      </div>
+      
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">🎨</div>
+          <div class="component-title">Global Styles</div>
+        </div>
+        <div class="component-path">src/app/globals.css</div>
+        <div class="component-desc">
+          Comprehensive styling system with verdict colors and responsive layout.
+        </div>
+        <ul class="component-features">
+          <li>Verdict badge colors</li>
+          <li>Card components</li>
+          <li>Responsive grid</li>
+          <li>Dark code blocks</li>
+        </ul>
+      </div>
+    </div>
+    
+    <h2 class="section-title">CLI & Entry Points</h2>
+    
+    <div class="architecture-map">
+      <div class="component">
+        <div class="component-header">
+          <div class="component-icon">⌨️</div>
+          <div class="component-title">CLI Accept Command</div>
+        </div>
+        <div class="component-path">src/cli/accept.ts</div>
+        <div class="component-desc">
+          Command-line interface for processing PRs and getting binary verdicts.
+        </div>
+        <ul class="component-features">
+          <li>Accepts repo path</li>
+          <li>Processes ship packet</li>
+          <li>Prints summary</li>
+          <li>Exit 0 (MERGE) or 1 (BLOCK)</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div style="margin-top: 4rem; padding: 2rem; background: #1a1a1a; border-radius: 12px; border: 1px solid #333;">
+      <h3 style="color: #fff; margin-bottom: 1rem;">Key Design Principles</h3>
+      <ul style="color: #aaa; line-height: 2;">
+        <li><strong>Fail-Closed:</strong> Unknown states → BLOCK verdict</li>
+        <li><strong>Local-First:</strong> No external API dependencies</li>
+        <li><strong>Audit Trail:</strong> Complete witness chain for transparency</li>
+        <li><strong>Type-Safe:</strong> Full TypeScript coverage</li>
+        <li><strong>Modular:</strong> Each module is independently testable</li>
+        <li><strong>Portable:</strong> Export ship packets as standalone HTML</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
